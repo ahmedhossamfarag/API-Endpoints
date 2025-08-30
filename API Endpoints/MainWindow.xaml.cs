@@ -97,5 +97,40 @@ namespace API_Endpoints
 				}
 			}
 		}
-	}
+
+		private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+		{
+			if(sender is TextBox tb)
+			{
+				if(e.Key == Key.OemOpenBrackets && (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+				{
+					var caretIndx = tb.CaretIndex;
+					tb.Text = tb.Text.Insert(caretIndx, "{}");
+					tb.CaretIndex = caretIndx + 1;
+					e.Handled = true;
+				}
+				if(e.Key == Key.Enter)
+				{
+					var caretIndx = tb.CaretIndex;
+					var textBefore = tb.Text.Substring(0, caretIndx);
+					var textAfter = tb.Text.Substring(caretIndx, tb.Text.Length - caretIndx);
+					if (textBefore.TrimEnd().EndsWith("{") && textAfter.TrimStart().StartsWith("}"))
+					{
+						var lastLine = textBefore.Split('\n').Last();
+						var indentPattern = "    ";
+						var indent = "";
+						while (lastLine.StartsWith(indentPattern))
+						{
+							indent += indentPattern;
+							lastLine = lastLine.Substring(indentPattern.Length);
+						}
+						tb.Text = tb.Text.Insert(caretIndx, Environment.NewLine + indent + indentPattern + Environment.NewLine + indent);
+						tb.CaretIndex = caretIndx + Environment.NewLine.Length + indent.Length + indentPattern.Length;
+						e.Handled = true;
+					}
+
+				}
+			}
+        }
+    }
 }
